@@ -15,7 +15,7 @@ type BootloaderStatus struct {
 	flash        string
 	flashErrAddr uint64
 	fwSize       uint64
-	fwStored     uint64
+	fwProcessed  uint64
 }
 
 // BootloaderStatusLineParse parses the given status line (in split tokens)
@@ -33,7 +33,7 @@ func BootloaderStatusLineParse(toks []string) (BootloaderStatus, error) {
 	bts.flash = ""
 	bts.flashErrAddr = 0
 	bts.fwSize = 0
-	bts.fwStored = 0
+	bts.fwProcessed = 0
 
 	for i := 2; i < len(toks); i++ {
 		switch toks[i] {
@@ -55,9 +55,9 @@ func BootloaderStatusLineParse(toks []string) (BootloaderStatus, error) {
 		case "fwsize:":
 			i++
 			bts.fwSize, _ = strconv.ParseUint(strings.Trim(toks[i], ","), 10, 32)
-		case "stored:":
+		case "processed:":
 			i++
-			bts.fwStored, _ = strconv.ParseUint(strings.Trim(toks[i], ","), 10, 32)
+			bts.fwProcessed, _ = strconv.ParseUint(strings.Trim(toks[i], ","), 10, 32)
 		}
 	}
 	return bts, nil
@@ -72,6 +72,6 @@ func BootloaderStatusPrint(bts BootloaderStatus) {
 		"  flash: %s\n"+
 		"  flash error address: %d\n"+
 		"  fw size from header: %d\n"+
-		"  stored fw bytes: %d\n", bts.dataproc, bts.app, bts.configarea, bts.flash,
-		bts.flashErrAddr, bts.fwSize, bts.fwStored)
+		"  processed fw bytes: %d\n", bts.dataproc, bts.app, bts.configarea, bts.flash,
+		bts.flashErrAddr, bts.fwSize, bts.fwProcessed)
 }

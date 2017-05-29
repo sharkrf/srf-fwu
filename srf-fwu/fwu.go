@@ -24,7 +24,7 @@ type Settings struct {
 }
 
 func printProgress(bts BootloaderStatus) {
-	p := (float64(bts.fwStored) / float64(bts.fwSize)) * 100.0
+	p := (float64(bts.fwProcessed) / float64(bts.fwSize)) * 100.0
 	if math.IsNaN(p) {
 		p = 0
 	}
@@ -64,6 +64,7 @@ func Start(settings Settings) (bool, error) {
 	var bts BootloaderStatus
 	var err error
 	var deviceIdentifier string
+	var triesOnTimeout int
 
 	if settings.Verbose {
 		fmt.Println("out: \r\r\r")
@@ -124,7 +125,15 @@ func Start(settings Settings) (bool, error) {
 				}
 			}
 		case <-time.After(time.Second * 5):
-			return false, errors.New("timeout")
+			if fwuState == stateSending && triesOnTimeout < 3 {
+				triesOnTimeout++
+				if settings.Verbose {
+					fmt.Println("out: sta\r")
+				}
+				SerialPortWrite("sta\r")
+			} else {
+				return false, errors.New("timeout")
+			}
 		}
 	}
 }
