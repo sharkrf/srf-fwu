@@ -119,8 +119,7 @@ func Start(settings Settings) (bool, error) {
 					printProgress(bts)
 
 					// Checking results.
-					if bts.flash != "ok" || bts.configarea != "ok" ||
-						(bts.dataproc != "working" && bts.dataproc != "ready") {
+					if bts.flash != "ok" || bts.configarea != "ok" || bts.dataproc != "working" {
 						BootloaderStatusPrint(bts)
 						if bts.flash == "ok" && bts.configarea == "ok" && bts.dataproc == "success" {
 							fmt.Println("\nfirmware upgraded successfully! starting app.")
