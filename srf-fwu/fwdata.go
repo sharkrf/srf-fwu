@@ -30,7 +30,7 @@ func FwDataRead(fwFileName string) error {
 // FwDataGetHexChunk returns the next 512-byte chunk in hex character pairs.
 func FwDataGetHexChunk() string {
 	remaining := len(fwData) - fwDataPos
-	sendSliceLength := int(math.Min(float64(remaining), 512))
+	sendSliceLength := int(math.Min(float64(remaining), 1024))
 	res := hex.EncodeToString(fwData[fwDataPos : fwDataPos+sendSliceLength])
 	fwDataPos += sendSliceLength
 	return res
