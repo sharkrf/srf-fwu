@@ -29,9 +29,9 @@ func printProgress(bts BootloaderStatus) {
 		p = 0
 	}
 	if p >= 100 {
-		fmt.Printf("progress: 100%% (waiting for result...)\n")
+		fmt.Printf("\rprogress: 100%% (waiting for result...)\n")
 	} else {
-		fmt.Printf("progress: %.2f%%\n", p)
+		fmt.Printf("\rprogress: %.2f%%", p)
 	}
 }
 
@@ -82,11 +82,20 @@ func Start(settings Settings) (bool, error) {
 
 			switch fwuState {
 			default:
-				if len(toks) >= 4 && toks[0] == "sercon:" && toks[1] == "inf:" && toks[2] == "SharkRF" && toks[3] == "Bootloader" {
-					fmt.Println("found bootloader: " + strings.Join(toks[2:5], " "))
-					deviceIdentifier = toks[5]
-					fmt.Println("device identifier: " + deviceIdentifier)
-					fwuState = stateWaitingForFirstStatus
+				if len(toks) >= 4 && toks[0] == "sercon:" && toks[1] == "inf:" && toks[2] == "SharkRF" {
+					if toks[3] == "Bootloader" {
+						fmt.Println("found bootloader: " + strings.Join(toks[2:5], " "))
+						deviceIdentifier = toks[5]
+						fmt.Println("device identifier: " + deviceIdentifier)
+						fwuState = stateWaitingForFirstStatus
+					} else {
+						fmt.Println("app is running, rebooting device to bootloader")
+						if settings.Verbose {
+							fmt.Println("out: rbb\r")
+						}
+						SerialPortWrite("rbb\r")
+						return true, nil
+					}
 				}
 			case stateWaitingForFirstStatus:
 				bts, err = BootloaderStatusLineParse(toks)
@@ -114,9 +123,14 @@ func Start(settings Settings) (bool, error) {
 						(bts.dataproc != "working" && bts.dataproc != "ready") {
 						BootloaderStatusPrint(bts)
 						if bts.flash == "ok" && bts.configarea == "ok" && bts.dataproc == "success" {
-							fmt.Println("firmware upgraded successfully!")
+							fmt.Println("\nfirmware upgraded successfully! starting app.")
+
+							if settings.Verbose {
+								fmt.Println("out: rbt\r")
+							}
+							SerialPortWrite("rbt\r")
 						} else {
-							fmt.Println("firmware upgrade failed!")
+							fmt.Println("\nfirmware upgrade failed!")
 						}
 						return false, nil
 					}
